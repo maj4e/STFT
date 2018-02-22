@@ -2,6 +2,7 @@ import numpy as np
 from scipy.fftpack import fft, ifft, fftfreq, fftshift
 import math
 from scipy.signal import blackman, hamming, hanning, cosine, blackmanharris
+from math import pi as pi
 
 
 #----------analysis filterbank: forward short-time Fourier transform
@@ -118,3 +119,35 @@ def istft(spectrum,winsize_samples,nfft_samples,overlap_percentage,wintype):
     sig_out =  sig_hat.flatten()
 
     return sig_out
+
+
+#----------GENERATE STEERING TABLES FOR GIVEN GEOMETRY AND RESOLUTION
+def generate_steer_table(angle_resolution,mic_pos,nfft_samples,Fs):
+
+    # angle resolution is given in degrees
+    c = 343
+    scan_angles = np.arange(-180,180,angle_resolution)*pi/180
+    scan_vectors = np.matrix([np.cos(scan_angles),np.sin(scan_angles)])
+
+    # These dot products are if we align to the centre
+    #dotproducts = np.transpose(scan_vectors)*mic_pos
+
+    # These dot products are if we align to the first microphone (w.l.g)
+    pos_vec = mic_pos - np.expand_dims(mic_pos[:,0],axis = 1)
+    dotproducts = np.transpose(scan_vectors)*pos_vec
+
+    # Now, set the frequency axis to be scanned
+    freq_Hz = np.arange(0,int(nfft_samples/2+1),1)*Fs/nfft_samples
+    freq_Hz[0] = 0.001 # to avoid division by 0 at DC
+    lambd = np.divide(c,freq_Hz)
+    kappa_scan = 2*pi/lambd
+
+    # Now, we need to create all the exponentials for all wavenumbers, angles, and sensor locations (3D tensor)
+    tmp = np.zeros((dotproducts.shape[0],dotproducts.shape[1],1))
+    tmp[:,:,0] = dotproducts
+    dotproducts = tmp
+
+    all_phases = kappa_scan*dotproducts
+    STEERING_TABLE = np.exp(-1j*all_phases)
+
+    return STEERING_TABLE, scan_angles
