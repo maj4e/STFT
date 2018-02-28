@@ -12,13 +12,13 @@ num_windows = 10
 
 # define the stft filterbank parameters
 winsize_samples = 1024
-overlap_percentage = 79
+overlap_percentage = 75
 hop = int(winsize_samples*(100-overlap_percentage)/100)
 
 totlen = (num_windows+5)*hop
 allwindows = np.zeros(shape = (totlen,num_windows))
 
-mywin = np.square(blackman(winsize_samples,sym=False))
+mywin = np.square(hanning(winsize_samples,sym=False))
 sqsum = np.sum(mywin)/winsize_samples
 invsqsum = 1/sqsum
 tmp = (100-overlap_percentage)/100
@@ -33,6 +33,7 @@ for idx in range(0,num_windows):
     allwindows[:,idx] = tmp
 
 output = np.sum(allwindows,1)*correctionFactor
+
 
 fig, axes = plt.subplots(2,1,figsize = (14,5))
 axes[0].plot(allwindows[:,0])
