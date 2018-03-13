@@ -5,14 +5,18 @@ from math import sin as sin
 import math
 from pylab import *
 import matplotlib.pyplot as plt
+from numpy import genfromtxt
+
 
 f = 2000        # frequency in Hertz
 c = 343         # speed of sound
 
 #--------------- Set the array geometry -----------------
 
-arrtype = 'linear'
 #arrtype = 'circular'
+#arrtype = 'linear'
+arrtype = 'irregular'
+
 num_mics = 5    # number of microphones
 d = 1*0.1         # distance between microphones
 
@@ -25,18 +29,27 @@ if arrtype == 'linear':
     arrcenter = [0,0];
     mic_pos = [xcoord, ycoord]
     mic_pos = np.matrix(mic_pos)
-else:
+
+elif arrtype == 'circular':
+
     tmp = np.arange(0,2*pi,2*pi/num_mics)
     mic_pos = np.matrix([cos(tmp), sin(tmp)])
     diameter = d*(num_mics-1) # similar apperture_len as a linear with same number of elements
     mic_pos = 0.5*diameter*mic_pos
 
+else:
+
+    my_data = genfromtxt('array_geometries/arr_eigenmike_static_task1.dat', delimiter=',')
+    mic_pos = my_data[0:2,:]
+
+#figure()
+#plot(mic_pos[0,:], mic_pos[1,:], 'r o')
 
 
 #---------------- Set the source location ---------------
 
 source_dist = 1.5 # source distance from array centre
-source_angle = 0*pi/180  # source angle w.r.t. array centre (x-axis 0 reference)
+source_angle = 90*pi/180  # source angle w.r.t. array centre (x-axis 0 reference)
 
 
 source_doa = np.matrix([cos(source_angle), sin(source_angle)])

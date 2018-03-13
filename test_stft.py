@@ -1,3 +1,6 @@
+# This script is used to load an audio signal, transofm it to the frequency domain, and back to the time domain. The goal was to compare the two audio signals and make sure that the STFT implementation was fine.
+
+
 # import the necessary packages
 import matplotlib.pyplot as plt
 import soundfile as sf

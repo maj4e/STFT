@@ -1,3 +1,5 @@
+# Based on the task1 from the locata challenge: one static source, one static array
+
 import numpy as np
 from math import pi as pi
 from math import cos as cos
@@ -9,16 +11,19 @@ import scipy.io.wavfile as wf
 from module_stft import *
 import matplotlib.animation as animation
 
-# Look up the array geometry from the MATLAB generation script (remove the translation from center)
-mic_pos = np.array([[  -0.0500,    0.0500 ],[0,    0]])
-
+# Load the static array geometry
+my_data = genfromtxt('array_geometries/locata/arr_benchmark2_task2_recording2.dat', delimiter=',')
+mic_pos = my_data[0:2,:] # this removes the z-coordinate, the current estimators do not consider elevation angle
 
 # Load the multichannel audio file in numpy array
-Fs, inputSig = wf.read('test_signals/ps25_t100_a75_w80_id.wav')
+Fs, inputSig = wf.read('test_signals/locata/sig_benchmark2_task2_recording2.wav')
 numchans = inputSig.shape[1]
 
+#figure()
+#plot(inputSig)
+
 # Shorten the signal for quicker testing
-inputSig = inputSig[30000:80000,:]
+#inputSig = inputSig[30000:100000,:]
 
 # Set the STFT parameters
 winsize_samples = 1024
@@ -58,7 +63,7 @@ for idx in range(0,numchans):
 
 #------------ CROSS POWER SPECTRAL DENSITY OF THE OBSERVED SPECTRUM
 
-avg_const = 0.5 # exponential averaging for the PSD
+avg_const = 0.4 # exponential averaging for the PSD
 phases_cpsd = zeros(shape = spectrum.shape)
 phi_mvdr = zeros(shape =  (spectrum.shape[0],spectrum.shape[1], scan_angles.shape[0]))
 
@@ -262,8 +267,8 @@ DOA_batch_SRP = DOA_batch_SRP/np.amax(DOA_batch_SRP)
 DOA_batch_SRP_nonlin = np.sum(np.sum(SRP_nonlin[:,:,:],axis = 0),axis=0)
 DOA_batch_SRP_nonlin = DOA_batch_SRP_nonlin/np.amax(DOA_batch_SRP_nonlin)
 
-# DOA_batch_MVDR = np.sum(np.sum(MVDR[:,:,:],axis = 0),axis=0)
-# DOA_batch_MVDR =  DOA_batch_MVDR/np.amax(DOA_batch_MVDR)
+#DOA_batch_MVDR = np.sum(np.sum(MVDR[:,:,:],axis = 0),axis=0)
+#DOA_batch_MVDR =  DOA_batch_MVDR/np.amax(DOA_batch_MVDR)
 
 
 # Do not sum across time but take the maximum
@@ -273,22 +278,22 @@ DOA_batch_SRP_max = DOA_batch_SRP_max/np.amax(DOA_batch_SRP_max)
 DOA_batch_SRP_nonlin_max = np.amax(np.sum(SRP_nonlin,axis=0),axis =0)
 DOA_batch_SRP_nonlin_max = DOA_batch_SRP_nonlin_max/np.amax(DOA_batch_SRP_nonlin_max)
 
-# DOA_batch_MVDR_max = np.amax(np.sum(MVDR,axis=0),axis =0)
-# DOA_batch_MVDR_max =  DOA_batch_MVDR_max/np.amax(DOA_batch_MVDR_max)
+#DOA_batch_MVDR_max = np.amax(np.sum(MVDR,axis=0),axis =0)
+#OA_batch_MVDR_max =  DOA_batch_MVDR_max/np.amax(DOA_batch_MVDR_max)
 
 fig = plt.figure(figsize = (15,6))
 #---
 plt.subplot(121, projection = 'polar')
 plt.plot(scan_angles, DOA_batch_SRP, color = 'b', label = 'SRP',linestyle = ':')
 plt.plot(scan_angles, DOA_batch_SRP_nonlin, color = 'r', label = 'SRP_nonlin' ,linestyle = '--')
-# plt.plot(scan_angles, DOA_batch_MVDR, color = 'g', label = 'MVDR' ,linestyle = '-')
+#plt.plot(scan_angles, DOA_batch_MVDR, color = 'g', label = 'MVDR' ,linestyle = '-')
 plt.legend()
 plt.title('Batch fullband spectrum')
 #---
 plt.subplot(122, projection = 'polar')
 plt.plot(scan_angles, DOA_batch_SRP_max, color = 'b', label = 'SRP',linestyle = ':')
 plt.plot(scan_angles, DOA_batch_SRP_nonlin_max, color = 'r', label = 'SRP_nonlin' ,linestyle = '--')
-# plt.plot(scan_angles, DOA_batch_MVDR_max, color = 'g', label = 'MVDR' ,linestyle = '-')
+#plt.plot(scan_angles, DOA_batch_MVDR_max, color = 'g', label = 'MVDR' ,linestyle = '-')
 plt.legend()
 
 plt.show()
